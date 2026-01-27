@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PlayCircle, PauseCircle, Sparkles, Timer, Music } from "lucide-react";
-import { OpenAI } from "openai"; // Ensure OpenAI SDK is installed
+import { toast } from "sonner";
 
 interface Meditation {
   title: string;
@@ -39,28 +39,43 @@ export default function GuidedMeditation() {
   const fetchAiMeditation = async () => {
     setLoading(true);
     try {
-      const openai = new OpenAI({
-        apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
-      });
-      const response = await openai.chat.completions.create({
-        model: "gpt-4",
-        messages: [
-          {
-            role: "user",
-            content: "Suggest a guided meditation for relaxation.",
-          },
-        ],
-        temperature: 0.7,
+      const response = await fetch("/api/chatbot", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message:
+            "Suggest a guided meditation for relaxation. Respond ONLY with valid JSON in this exact format: {\"title\": \"Meditation Name\", \"duration\": \"X min\", \"audio\": \"/audios/custom.mp3\"}",
+        }),
       });
 
-      const meditationData = response.choices[0].message.content;
-      if (meditationData) {
-        setAiMeditation(JSON.parse(meditationData)); // Ensure AI returns valid JSON
-      } else {
-        setAiMeditation(null);
+      const data = await response.json();
+
+      if (data.reply) {
+        try {
+          // Try to extract JSON from the response
+          const jsonMatch = data.reply.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            const meditationData = JSON.parse(jsonMatch[0]);
+            setAiMeditation(meditationData);
+          } else {
+            // If no valid JSON, create a default meditation based on the response
+            setAiMeditation({
+              title: "AI Guided Meditation",
+              duration: "10 min",
+              audio: "/audios/morning-calm.mp3",
+            });
+          }
+        } catch {
+          setAiMeditation({
+            title: "Relaxation Meditation",
+            duration: "10 min",
+            audio: "/audios/deep-relaxation.mp3",
+          });
+        }
       }
     } catch (error) {
       console.error("Error fetching AI meditation:", error);
+      toast.error("Failed to get AI recommendation");
       setAiMeditation(null);
     }
     setLoading(false);
@@ -92,9 +107,11 @@ export default function GuidedMeditation() {
         {/* ✅ AI Meditation Button */}
         <Button
           onClick={fetchAiMeditation}
+          disabled={loading}
           className="mt-4 bg-[#34C0FC] text-white px-6 py-2 rounded-lg shadow-lg flex items-center gap-2 hover:bg-[#07304A] transition"
         >
-          <Sparkles className="w-5 h-5" /> Get AI Meditation
+          <Sparkles className="w-5 h-5" />
+          {loading ? "Getting AI Meditation..." : "Get AI Meditation"}
         </Button>
       </section>
 
@@ -122,7 +139,10 @@ export default function GuidedMeditation() {
             <p className="text-sm text-gray-600 mt-2 flex items-center gap-2">
               <Timer className="text-[#34C0FC]" /> {aiMeditation.duration}
             </p>
-            <Button className="mt-4 bg-[#34C0FC] text-white w-full rounded-lg shadow-lg hover:scale-105 transition-all">
+            <Button
+              onClick={() => handleAudioPlay(aiMeditation.audio)}
+              className="mt-4 bg-[#34C0FC] text-white w-full rounded-lg shadow-lg hover:scale-105 transition-all"
+            >
               Start AI Meditation
             </Button>
           </div>
