@@ -26,6 +26,12 @@ Athera AI offers a personalized dashboard for mental wellness, featuring:
 Before running the project, ensure you have the following installed:
 
 - Node.js (v18 or higher) or Bun
+  - **Windows Users**: To install Bun, open PowerShell and run:
+
+    ```powershell
+    powershell -c "irm bun.sh/install.ps1 | iex"
+    ```
+
 - Git
 
 ## Setup Instructions
