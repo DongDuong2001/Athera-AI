@@ -14,9 +14,8 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
-import { Eye, EyeOff } from "lucide-react";
-import { useState } from "react";
-import { createClient } from "@/utils/supabase/client";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { useState, Suspense } from "react";
 import { toast } from "sonner";
 import { useRouter, useSearchParams } from "next/navigation";
 
@@ -29,9 +28,8 @@ const formSchema = z.object({
   }),
 });
 
-export default function SignIn() {
+function SignInContent() {
   const [showPassword, setShowPassword] = useState(false);
-  const supabase = createClient();
   const router = useRouter();
   const searchParams = useSearchParams();
   const returnUrl = searchParams.get("returnUrl") || "/";
@@ -46,21 +44,31 @@ export default function SignIn() {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: values.email,
-        password: values.password,
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: values.email,
+          password: values.password,
+        }),
       });
 
-      if (error) {
-        throw error;
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Login failed");
       }
 
-      if (data) {
-        router.push(decodeURIComponent(returnUrl));
-      }
+      toast.success("Welcome back!");
+      router.push(decodeURIComponent(returnUrl));
+      router.refresh();
     } catch (error) {
       console.error(error);
-      toast.error("Invalid email or password");
+      toast.error(
+        error instanceof Error ? error.message : "Invalid email or password"
+      );
     }
   };
 
@@ -145,7 +153,14 @@ export default function SignIn() {
                 className="w-full bg-[#34C0FC] text-white py-3 rounded-md shadow-md hover:bg-[#1D92D0] transition"
                 disabled={form.formState.isSubmitting}
               >
-                {form.formState.isSubmitting ? "Signing In..." : "Sign In"}
+                {form.formState.isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Signing In...
+                  </>
+                ) : (
+                  "Sign In"
+                )}
               </Button>
             </form>
           </Form>
@@ -161,5 +176,13 @@ export default function SignIn() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SignIn() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
+      <SignInContent />
+    </Suspense>
   );
 }
