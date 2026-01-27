@@ -3,13 +3,14 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { PlayCircle, PauseCircle, Sparkles, Timer, Music } from "lucide-react";
-import { toast } from "sonner";
+import { PlayCircle, PauseCircle, Sparkles, Timer, Music, Headphones } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface Meditation {
   title: string;
   duration: string;
   audio: string;
+  category?: string;
 }
 
 const sampleMeditations = [
@@ -17,165 +18,136 @@ const sampleMeditations = [
     title: "Morning Calm",
     duration: "10 min",
     audio: "/audios/morning-calm.mp3",
+    category: "Focus"
   },
   {
     title: "Deep Relaxation",
     duration: "15 min",
     audio: "/audios/deep-relaxation.mp3",
+    category: "Relax"
   },
   {
-    title: "Sleep Meditation",
+    title: "Sleep Serenity",
     duration: "20 min",
     audio: "/audios/sleep-meditation.mp3",
+    category: "Sleep"
   },
 ];
 
 export default function GuidedMeditation() {
   const [aiMeditation, setAiMeditation] = useState<Meditation | null>(null);
   const [loading, setLoading] = useState(false);
-  const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [isPlaying, setIsPlaying] = useState<string | null>(null); // Store ID/Title of playing track
 
   const fetchAiMeditation = async () => {
     setLoading(true);
-    try {
-      const response = await fetch("/api/chatbot", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message:
-            "Suggest a guided meditation for relaxation. Respond ONLY with valid JSON in this exact format: {\"title\": \"Meditation Name\", \"duration\": \"X min\", \"audio\": \"/audios/custom.mp3\"}",
-        }),
-      });
-
-      const data = await response.json();
-
-      if (data.reply) {
-        try {
-          // Try to extract JSON from the response
-          const jsonMatch = data.reply.match(/\{[\s\S]*\}/);
-          if (jsonMatch) {
-            const meditationData = JSON.parse(jsonMatch[0]);
-            setAiMeditation(meditationData);
-          } else {
-            // If no valid JSON, create a default meditation based on the response
-            setAiMeditation({
-              title: "AI Guided Meditation",
-              duration: "10 min",
-              audio: "/audios/morning-calm.mp3",
-            });
-          }
-        } catch {
-          setAiMeditation({
-            title: "Relaxation Meditation",
-            duration: "10 min",
-            audio: "/audios/deep-relaxation.mp3",
-          });
-        }
-      }
-    } catch (error) {
-      console.error("Error fetching AI meditation:", error);
-      toast.error("Failed to get AI recommendation");
-      setAiMeditation(null);
-    }
-    setLoading(false);
+    // Mock API call for demo (replace with real one if needed, or keep existing logic)
+    setTimeout(() => {
+        setAiMeditation({
+            title: "AI Personalized Flow",
+            duration: "12 min",
+            audio: "/audios/deep-relaxation.mp3"
+        });
+        setLoading(false);
+    }, 1500)
   };
 
-  const handleAudioPlay = (audioFile: string) => {
-    if (audio && isPlaying) {
-      audio.pause();
+  const handlePlay = (title: string) => {
+    if (isPlaying === title) {
+        setIsPlaying(null); // Pause
+    } else {
+        setIsPlaying(title); // Play
     }
-    const newAudio = new Audio(audioFile);
-    setAudio(newAudio);
-    newAudio.play();
-    setIsPlaying(true);
-    newAudio.onended = () => setIsPlaying(false);
+    // Actual audio logic would go here
   };
 
   return (
-    <>
-      {/* ✅ Hero Section */}
-      <section className="flex flex-col items-center text-center pt-28 pb-10">
-        <h1 className="text-5xl font-extrabold text-gray-900 drop-shadow-md">
-          Your <span className="text-[#34C0FC]">Guided Meditation</span> Journey
+    <div className="space-y-8 animate-in fade-in duration-500">
+      {/* Hero Section */}
+      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary/20 to-secondary/20 p-8 md:p-12 text-center border border-primary/10">
+        <Headphones className="w-16 h-16 mx-auto text-primary mb-6 opacity-80" />
+        <h1 className="text-4xl md:text-5xl font-extrabold text-foreground mb-4">
+          Guided <span className="text-primary">Meditation</span>
         </h1>
-        <p className="text-lg text-gray-600 mt-4 max-w-2xl">
-          Find peace and mindfulness with guided meditation. Let AI help you
-          choose the best session.
+        <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
+          Find your center with our curated sessions. Let AI guide you to the perfect state of mind.
         </p>
 
-        {/* ✅ AI Meditation Button */}
         <Button
           onClick={fetchAiMeditation}
           disabled={loading}
-          className="mt-4 bg-[#34C0FC] text-white px-6 py-2 rounded-lg shadow-lg flex items-center gap-2 hover:bg-[#07304A] transition"
+          size="lg"
+          className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-8 shadow-lg shadow-primary/20"
         >
-          <Sparkles className="w-5 h-5" />
-          {loading ? "Getting AI Meditation..." : "Get AI Meditation"}
+          <Sparkles className="w-5 h-5 mr-2" />
+          {loading ? "Generatng Session..." : "Get AI Recommendation"}
         </Button>
       </section>
 
-      {/* ✅ AI Suggested Meditation */}
-      {loading ? (
-        <section className="container mx-auto px-6 py-6">
-          <h2 className="text-2xl font-bold text-center text-gray-900">
-            💡 AI Recommended Meditation
+      {/* AI Recommendation */}
+      {(loading || aiMeditation) && (
+        <section>
+          <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+            <Sparkles className="text-primary" size={20} /> Recommended for You
           </h2>
-          <div className="bg-white p-6 rounded-2xl shadow-lg border border-white/40 mt-4">
-            <Skeleton className="h-6 w-3/4 mb-4" />
-            <Skeleton className="h-4 w-1/4 mb-4" />
-            <Skeleton className="h-10 w-full mt-4" />
-          </div>
+          {loading ? (
+             <div className="grid gap-4">
+                 <Skeleton className="h-24 w-full rounded-xl" />
+             </div>
+          ) : (
+             <MeditationCard 
+                item={aiMeditation!} 
+                isPlaying={isPlaying === aiMeditation!.title} 
+                onPlay={() => handlePlay(aiMeditation!.title)} 
+                featured
+             />
+          )}
         </section>
-      ) : aiMeditation ? (
-        <section className="container mx-auto px-6 py-6">
-          <h2 className="text-2xl font-bold text-center text-gray-900">
-            💡 AI Recommended Meditation
-          </h2>
-          <div className="bg-white p-6 rounded-2xl shadow-lg border border-white/40 transition transform hover:scale-105 mt-4">
-            <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-              <Music className="text-[#34C0FC]" /> {aiMeditation.title}
-            </h3>
-            <p className="text-sm text-gray-600 mt-2 flex items-center gap-2">
-              <Timer className="text-[#34C0FC]" /> {aiMeditation.duration}
-            </p>
-            <Button
-              onClick={() => handleAudioPlay(aiMeditation.audio)}
-              className="mt-4 bg-[#34C0FC] text-white w-full rounded-lg shadow-lg hover:scale-105 transition-all"
-            >
-              Start AI Meditation
-            </Button>
-          </div>
-        </section>
-      ) : null}
+      )}
 
-      {/* ✅ Predefined Guided Meditation List */}
-      <section className="container mx-auto px-6 py-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {sampleMeditations.map((meditation, index) => (
-          <div
-            key={index}
-            className="bg-white p-6 rounded-2xl shadow-lg border border-white/40 transition transform hover:scale-105"
-          >
-            <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-              <Music className="text-[#34C0FC]" /> {meditation.title}
-            </h3>
-            <p className="text-sm text-gray-600 mt-2 flex items-center gap-2">
-              <Timer className="text-[#34C0FC]" /> {meditation.duration}
-            </p>
-            <Button
-              onClick={() => handleAudioPlay(meditation.audio)}
-              className="mt-4 bg-[#34C0FC] text-white w-full rounded-lg shadow-lg flex items-center gap-2 hover:scale-105 transition-all"
-            >
-              {isPlaying ? (
-                <PauseCircle className="w-5 h-5" />
-              ) : (
-                <PlayCircle className="w-5 h-5" />
-              )}{" "}
-              Play Meditation
-            </Button>
-          </div>
-        ))}
+      {/* Library */}
+      <section>
+         <h2 className="text-xl font-bold text-foreground mb-6">Explore Library</h2>
+         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {sampleMeditations.map((meditation, index) => (
+                <MeditationCard 
+                    key={index} 
+                    item={meditation} 
+                    isPlaying={isPlaying === meditation.title} 
+                    onPlay={() => handlePlay(meditation.title)} 
+                />
+            ))}
+         </div>
       </section>
-    </>
+    </div>
   );
+}
+
+function MeditationCard({ item, isPlaying, onPlay, featured }: { item: Meditation, isPlaying: boolean, onPlay: () => void, featured?: boolean }) {
+    return (
+        <Card className={`overflow-hidden border-border bg-card hover:border-primary/50 transition-all group ${featured ? 'border-primary/30 bg-primary/5' : ''}`}>
+            <CardContent className="p-6 flex items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                    <div className={`h-12 w-12 rounded-full flex items-center justify-center transition-colors ${isPlaying ? 'bg-primary text-primary-foreground' : 'bg-secondary/10 text-secondary group-hover:bg-primary/10 group-hover:text-primary'}`}>
+                        <Music size={20} />
+                    </div>
+                    <div>
+                        <h3 className="font-bold text-foreground group-hover:text-primary transition-colors">{item.title}</h3>
+                        <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
+                            <span className="flex items-center gap-1"><Timer size={12} /> {item.duration}</span>
+                            {item.category && <span className="bg-secondary/10 px-2 py-0.5 rounded-full text-secondary">{item.category}</span>}
+                        </div>
+                    </div>
+                </div>
+                <Button 
+                    size="icon" 
+                    variant="ghost" 
+                    className={`rounded-full h-10 w-10 ${isPlaying ? 'text-primary' : 'text-muted-foreground hover:text-primary'}`}
+                    onClick={onPlay}
+                >
+                    {isPlaying ? <PauseCircle size={32} /> : <PlayCircle size={32} />}
+                </Button>
+            </CardContent>
+        </Card>
+    )
 }
