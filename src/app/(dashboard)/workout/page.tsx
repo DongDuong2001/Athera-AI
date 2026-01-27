@@ -2,15 +2,17 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Dumbbell, CheckCircle, Flame, Timer, Sparkles } from "lucide-react";
+import { Flame, Timer, Sparkles } from "lucide-react";
 import { toast } from "sonner";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 interface Workout {
   title: string;
   level: string;
   duration: string;
   calories: string;
+  type?: string;
 }
 
 const workouts: Workout[] = [
@@ -19,193 +21,120 @@ const workouts: Workout[] = [
     level: "Beginner",
     duration: "30 min",
     calories: "250 kcal",
+    type: "Strength"
   },
   {
     title: "HIIT Fat Burner",
     level: "Intermediate",
     duration: "20 min",
     calories: "300 kcal",
+    type: "Cardio"
   },
   {
     title: "Upper Body Strength",
     level: "Advanced",
     duration: "45 min",
     calories: "400 kcal",
+    type: "Strength"
   },
   {
     title: "Core & Abs Shred",
     level: "Intermediate",
     duration: "25 min",
     calories: "280 kcal",
+    type: "Core"
   },
   {
     title: "Legs & Glutes",
     level: "Beginner",
     duration: "35 min",
     calories: "350 kcal",
+    type: "Strength"
   },
 ];
 
-export default function WorkoutPlan() {
+export default function WorkoutPage() {
   const [selectedLevel, setSelectedLevel] = useState("All");
-  const [aiWorkout, setAiWorkout] = useState<Workout | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
 
-  const fetchAiWorkout = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch("/api/chatbot", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: `Suggest a ${selectedLevel.toLowerCase()} level workout plan. Respond ONLY with valid JSON in this exact format: {"title": "Workout Name", "level": "${selectedLevel === "All" ? "Intermediate" : selectedLevel}", "duration": "X min", "calories": "Y kcal"}`,
-        }),
-      });
+  // Mock AI generation
+  const handleGenerate = () => {
+      setIsGenerating(true);
+      setTimeout(() => {
+          setIsGenerating(false);
+          toast.success("New plan generated!");
+      }, 1500);
+  }
 
-      const data = await response.json();
-
-      if (data.reply) {
-        try {
-          // Try to extract JSON from the response
-          const jsonMatch = data.reply.match(/\{[\s\S]*\}/);
-          if (jsonMatch) {
-            const workoutData = JSON.parse(jsonMatch[0]);
-            setAiWorkout(workoutData);
-          } else {
-            // If no valid JSON, create a default workout based on the response
-            setAiWorkout({
-              title: "AI Custom Workout",
-              level: selectedLevel === "All" ? "Intermediate" : selectedLevel,
-              duration: "30 min",
-              calories: "300 kcal",
-            });
-          }
-        } catch {
-          setAiWorkout({
-            title: "Full Body Burn",
-            level: selectedLevel === "All" ? "Intermediate" : selectedLevel,
-            duration: "30 min",
-            calories: "350 kcal",
-          });
-        }
-      }
-    } catch (error) {
-      console.error("Error fetching AI workout:", error);
-      toast.error("Failed to get AI recommendation");
-      setAiWorkout(null);
-    }
-    setLoading(false);
-  };
-
-  const filteredWorkouts =
-    selectedLevel === "All"
-      ? workouts
-      : workouts.filter((w) => w.level === selectedLevel);
+  const filteredWorkouts = selectedLevel === "All" 
+    ? workouts 
+    : workouts.filter(w => w.level === selectedLevel);
 
   return (
-    <>
-      {/* Hero Section */}
-      <section className="flex flex-col items-center text-center pt-28 pb-10">
-        <h1 className="text-5xl font-extrabold text-gray-900 drop-shadow-md">
-          Your <span className="text-[#34C0FC]">AI-Powered</span> Workout Plan
-        </h1>
-        <p className="text-lg text-gray-600 mt-4 max-w-2xl">
-          Get personalized workouts based on your fitness level and train
-          smarter with AI recommendations.
-        </p>
-
-        {/* Fitness Level Selector */}
-        <div className="mt-6">
-          <label className="text-lg font-semibold text-gray-800">
-            Select Your Fitness Level:
-          </label>
-          <select
-            value={selectedLevel}
-            onChange={(e) => setSelectedLevel(e.target.value)}
-            className="block mt-2 bg-white text-gray-800 px-4 py-2 rounded-md border border-gray-300 shadow-md focus:ring-2 focus:ring-[#34C0FC] transition"
-          >
-            <option value="All">All Levels</option>
-            <option value="Beginner">Beginner</option>
-            <option value="Intermediate">Intermediate</option>
-            <option value="Advanced">Advanced</option>
-          </select>
+    <div className="space-y-8 animate-in fade-in duration-500">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+        <div>
+            <h1 className="text-3xl font-bold text-foreground">Workout Plan</h1>
+            <p className="text-muted-foreground mt-2">Curated routines to keep you moving.</p>
         </div>
-
-        {/* AI Workout Button */}
-        <Button
-          onClick={fetchAiWorkout}
-          disabled={loading}
-          className="mt-4 bg-[#34C0FC] text-white px-6 py-2 rounded-lg shadow-lg flex items-center gap-2 hover:bg-[#07304A] transition"
-        >
-          <Sparkles className="w-5 h-5" />
-          {loading ? "Getting AI Workout..." : "Get AI Workout Plan"}
+        <Button onClick={handleGenerate} disabled={isGenerating} className="bg-primary text-primary-foreground">
+            <Sparkles className="mr-2 h-4 w-4" /> 
+            {isGenerating ? "Designing..." : "AI Personal Trainer"}
         </Button>
-      </section>
+      </div>
 
-      {/* AI Recommended Workout */}
-      {loading ? (
-        <section className="container mx-auto px-6 py-6">
-          <h2 className="text-2xl font-bold text-center text-gray-900">
-            💡 AI Recommended Workout
-          </h2>
-          <div className="bg-white p-6 rounded-2xl shadow-lg border border-white/40 mt-4">
-            <Skeleton className="h-6 w-3/4 mb-4" />
-            <Skeleton className="h-4 w-1/4 mb-2" />
-            <Skeleton className="h-4 w-1/3 mb-2" />
-            <Skeleton className="h-4 w-1/4 mb-4" />
-            <Skeleton className="h-10 w-full mt-4" />
-          </div>
-        </section>
-      ) : aiWorkout ? (
-        <section className="container mx-auto px-6 py-6">
-          <h2 className="text-2xl font-bold text-center text-gray-900">
-            💡 AI Recommended Workout
-          </h2>
-          <div className="bg-white p-6 rounded-2xl shadow-lg border border-white/40 transition transform hover:scale-105 mt-4">
-            <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-              <Dumbbell className="text-[#34C0FC]" /> {aiWorkout.title}
-            </h3>
-            <p className="text-sm text-gray-600 mt-2 flex items-center gap-2">
-              <CheckCircle className="text-green-500" /> {aiWorkout.level}
-            </p>
-            <p className="text-sm text-gray-600 mt-1 flex items-center gap-2">
-              <Timer className="text-[#34C0FC]" /> {aiWorkout.duration}
-            </p>
-            <p className="text-sm text-gray-600 mt-1 flex items-center gap-2">
-              <Flame className="text-red-500" /> {aiWorkout.calories}
-            </p>
-            <Button className="mt-4 bg-[#34C0FC] text-white w-full rounded-lg shadow-lg hover:scale-105 transition-all">
-              Start AI Workout
-            </Button>
-          </div>
-        </section>
-      ) : null}
+      {/* Filter Tabs */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-2">
+         {["All", "Beginner", "Intermediate", "Advanced"].map((level) => (
+             <button
+                key={level}
+                onClick={() => setSelectedLevel(level)}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                    selectedLevel === level 
+                    ? "bg-primary text-primary-foreground shadow-md" 
+                    : "bg-card text-muted-foreground hover:text-foreground hover:bg-secondary/10"
+                }`}
+             >
+                 {level}
+             </button>
+         ))}
+      </div>
 
-      {/* Workout Plans */}
-      <section className="container mx-auto px-6 py-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {filteredWorkouts.map((workout, index) => (
-          <div
-            key={index}
-            className="bg-white p-6 rounded-2xl shadow-lg border border-white/40 transition transform hover:scale-105"
-          >
-            <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-              <Dumbbell className="text-[#34C0FC]" /> {workout.title}
-            </h3>
-            <p className="text-sm text-gray-600 mt-2 flex items-center gap-2">
-              <CheckCircle className="text-green-500" /> {workout.level}
-            </p>
-            <p className="text-sm text-gray-600 mt-1 flex items-center gap-2">
-              <Timer className="text-[#34C0FC]" /> {workout.duration}
-            </p>
-            <p className="text-sm text-gray-600 mt-1 flex items-center gap-2">
-              <Flame className="text-red-500" /> {workout.calories}
-            </p>
-            <Button className="mt-4 bg-[#34C0FC] text-white w-full rounded-lg shadow-lg hover:scale-105 transition-all">
-              Start Workout
-            </Button>
-          </div>
-        ))}
-      </section>
-    </>
+      {/* Workout Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+         {filteredWorkouts.map((workout, idx) => (
+             <Card key={idx} className="bg-card border-border hover:border-primary/50 transition-all group overflow-hidden">
+                 <div className="h-2 w-full bg-gradient-to-r from-primary to-secondary opacity-75 group-hover:opacity-100 transition-opacity" />
+                 <CardHeader>
+                     <div className="flex justify-between items-start">
+                         <Badge variant="outline" className="bg-secondary/10 text-secondary border-secondary/20 mb-2">
+                             {workout.level}
+                         </Badge>
+                         {workout.type && <span className="text-xs text-muted-foreground uppercase tracking-wider font-bold">{workout.type}</span>}
+                     </div>
+                     <CardTitle className="text-xl text-foreground group-hover:text-primary transition-colors">
+                         {workout.title}
+                     </CardTitle>
+                 </CardHeader>
+                 <CardContent>
+                     <div className="grid grid-cols-2 gap-4 text-sm text-muted-foreground mb-6">
+                         <div className="flex items-center gap-2">
+                             <Timer className="h-4 w-4 text-primary" />
+                             {workout.duration}
+                         </div>
+                         <div className="flex items-center gap-2">
+                             <Flame className="h-4 w-4 text-rose-500" />
+                             {workout.calories}
+                         </div>
+                     </div>
+                     <Button className="w-full bg-secondary/10 text-secondary hover:bg-primary hover:text-primary-foreground transition-all">
+                         Start Session
+                     </Button>
+                 </CardContent>
+             </Card>
+         ))}
+      </div>
+    </div>
   );
 }
