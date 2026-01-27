@@ -1,28 +1,70 @@
 import { NextResponse } from "next/server";
-import OpenAI from "openai";
+import Groq from "groq-sdk";
 
-const openai = new OpenAI({
-  apiKey: "API_KEY", // Make sure to set this in your .env file
-});
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
-const completion = openai.chat.completions.create({
-    model: "gpt-4o-mini",
-    messages: [{ role: "user", content: "Hello, how are you?" }],
-    });
-
-    completion.then((result) => console.log(result.choices[0].message));
 export async function POST(req: Request) {
   try {
-    const { message } = await req.json();
+    const apiKey = process.env.GROQ_API_KEY;
+    if (!apiKey) {
+      console.error("GROQ_API_KEY is missing");
+      return NextResponse.json(
+        { error: "Service configuration error" },
+        { status: 500 }
+      );
+    }
 
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [{ role: "user", content: message }],
+    const groq = new Groq({
+      apiKey,
     });
 
-    return NextResponse.json({ reply: response.choices[0].message.content });
+    const { message, conversationHistory = [] } = await req.json();
+
+    if (!message) {
+      return NextResponse.json(
+        { error: "Message is required" },
+        { status: 400 }
+      );
+    }
+
+    // Build messages array with conversation history
+    const messages = [
+      {
+        role: "system" as const,
+        content: `You are Athera, an empathetic AI wellness companion. You help users with:
+- Mental wellness and emotional support
+- Guided meditation and mindfulness
+- Mood tracking insights
+- General wellness advice
+
+Be warm, supportive, and encouraging. Keep responses concise but helpful.`,
+      },
+      ...conversationHistory,
+      { role: "user" as const, content: message },
+    ];
+
+    const response = await groq.chat.completions.create({
+      model: "llama-3.3-70b-versatile",
+      messages,
+      temperature: 0.7,
+      max_tokens: 1024,
+    });
+
+    const reply = response.choices[0]?.message?.content || "I'm sorry, I couldn't generate a response.";
+
+    return NextResponse.json({
+      reply,
+      model: "llama-3.3-70b-versatile",
+    });
   } catch (error) {
     console.error("Error fetching AI response:", error);
-    return NextResponse.json({ reply: "Error processing request. Please try again later." });
+    return NextResponse.json(
+      {
+        reply: "I'm experiencing some difficulties right now. Please try again in a moment.",
+        error: true,
+      },
+      { status: 500 }
+    );
   }
 }
