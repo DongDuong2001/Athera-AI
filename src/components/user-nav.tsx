@@ -19,10 +19,16 @@ import {
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 import SignOutButton from "./sign-out-button";
-import { User as SupabaseUser } from "@supabase/supabase-js";
+
+interface UserData {
+  id: string;
+  email: string;
+  name: string | null;
+  role: string;
+}
 
 interface UserNavProps {
-  user: SupabaseUser;
+  user: UserData;
 }
 
 export default function UserNav({ user }: UserNavProps) {
@@ -78,7 +84,9 @@ export default function UserNav({ user }: UserNavProps) {
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">User</p>
+            <p className="text-sm font-medium leading-none">
+              {user.name || "User"}
+            </p>
             <p className="text-xs leading-none text-muted-foreground">
               {user.email}
             </p>
