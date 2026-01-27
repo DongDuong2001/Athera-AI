@@ -1,43 +1,78 @@
-import {
-  createClient,
-} from '@/utils/supabase/server';
+import prisma from '@/utils/database/prisma';
+import { createSession, setSessionCookie } from '@/utils/auth';
 import { validateEmail, validateOtp } from '@/utils/email';
-import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
-export const runtime = 'edge';
+export const runtime = 'nodejs';
 
 export async function POST(request: Request) {
-  const { email, otp } = await request.json();
+  try {
+    const { email, otp } = await request.json();
 
-  const validatedEmail = await validateEmail(email);
-  const validatedOtp = await validateOtp(otp);
+    if (!email || !otp) {
+      return NextResponse.json(
+        { error: 'Email and OTP are required' },
+        { status: 400 }
+      );
+    }
 
-  const supabase = await createClient();
+    const validatedEmail = await validateEmail(email);
+    const validatedOtp = await validateOtp(otp);
 
-  const { error } = await supabase.auth.verifyOtp({
-    email: validatedEmail,
-    token: validatedOtp,
-    type: 'email',
-  });
+    // Find OTP record
+    const otpRecord = await prisma.otpVerification.findFirst({
+      where: {
+        email: validatedEmail.toLowerCase(),
+        otp: validatedOtp,
+        expiresAt: { gt: new Date() },
+      },
+    });
 
-  if (error)
-    return NextResponse.json({ error: error.message }, { status: 400 });
+    if (!otpRecord) {
+      return NextResponse.json(
+        { error: 'Invalid or expired verification code' },
+        { status: 400 }
+      );
+    }
 
-  const cookieStore = await cookies();
+    // Create user with verified email
+    const user = await prisma.user.create({
+      data: {
+        email: validatedEmail.toLowerCase(),
+        passwordHash: otpRecord.passwordHash,
+        emailVerified: true,
+      },
+    });
 
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+    // Delete OTP record
+    await prisma.otpVerification.delete({
+      where: { id: otpRecord.id },
+    });
 
-  const supabaseCookies = cookieStore
-    .getAll()
-    .filter(({ name }) => name.startsWith('sb-'))
-    .map(({ name, value }) => ({ name, value }));
+    // Create session
+    const { token, expiresAt } = await createSession({
+      id: user.id,
+      email: user.email,
+      role: user.role,
+    });
 
-  return NextResponse.json({
-    message: 'OTP verified successfully',
-    cookies: supabaseCookies,
-    session,
-  });
+    // Set session cookie
+    await setSessionCookie(token, expiresAt);
+
+    return NextResponse.json({
+      message: 'Account verified successfully',
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+      },
+    });
+  } catch (error) {
+    console.error('Verify OTP error:', error);
+    return NextResponse.json(
+      { error: 'Failed to verify OTP' },
+      { status: 500 }
+    );
+  }
 }
