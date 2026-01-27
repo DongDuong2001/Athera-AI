@@ -15,6 +15,9 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Smile, Meh, Frown, Zap, BookOpen } from "lucide-react";
+import { toast } from "sonner";
 
 ChartJS.register(
   CategoryScale,
@@ -35,23 +38,27 @@ interface MoodEntry {
 const moodOptions = [
   {
     name: "Happy",
-    icon: "😊",
-    color: "bg-green-100 border-green-500 text-green-700",
-  },
-  {
-    name: "Neutral",
-    icon: "😐",
-    color: "bg-yellow-100 border-yellow-500 text-yellow-700",
-  },
-  {
-    name: "Sad",
-    icon: "😢",
-    color: "bg-blue-100 border-blue-500 text-blue-700",
+    icon: <Smile size={32} />,
+    color: "bg-emerald-500/10 border-emerald-500 text-emerald-500 hover:bg-emerald-500/20",
+    activeColor: "ring-emerald-500 bg-emerald-500/20"
   },
   {
     name: "Energetic",
-    icon: "⚡",
-    color: "bg-orange-100 border-orange-500 text-orange-700",
+    icon: <Zap size={32} />,
+    color: "bg-amber-500/10 border-amber-500 text-amber-500 hover:bg-amber-500/20",
+    activeColor: "ring-amber-500 bg-amber-500/20"
+  },
+  {
+    name: "Neutral",
+    icon: <Meh size={32} />,
+    color: "bg-blue-500/10 border-blue-500 text-blue-500 hover:bg-blue-500/20",
+    activeColor: "ring-blue-500 bg-blue-500/20"
+  },
+  {
+    name: "Sad",
+    icon: <Frown size={32} />,
+    color: "bg-rose-500/10 border-rose-500 text-rose-500 hover:bg-rose-500/20",
+    activeColor: "ring-rose-500 bg-rose-500/20"
   },
 ];
 
@@ -72,11 +79,14 @@ export default function MoodDiary() {
     localStorage.setItem("mood-diary", JSON.stringify(moodData));
   }, [moodData]);
 
-  const logMood = (mood: string) => {
-    setSelectedMood(mood);
-    const newEntry = { date: today, mood, note };
+  const logMood = (moodName: string | null) => {
+    const moodToLog = moodName || selectedMood || "Neutral";
+    if (!selectedMood && !moodName) setSelectedMood("Neutral");
+    
+    const newEntry = { date: today, mood: moodToLog, note };
     const updatedData = moodData.filter((entry) => entry.date !== today);
     setMoodData([...updatedData, newEntry]);
+    toast.success("Mood logged successfully!");
   };
 
   const getMoodForDate = (date: string) => {
@@ -85,11 +95,11 @@ export default function MoodDiary() {
   };
 
   const getMoodIndex = (mood: string | null) => {
-    if (mood === "Happy") return 3;
-    if (mood === "Energetic") return 4;
+    if (mood === "Happy") return 4;
+    if (mood === "Energetic") return 3;
     if (mood === "Neutral") return 2;
     if (mood === "Sad") return 1;
-    return 0;
+    return 0; // No data
   };
 
   const weeklyData = Array.from({ length: 7 })
@@ -99,88 +109,137 @@ export default function MoodDiary() {
     })
     .reverse();
 
+ // Chart Colors matching Slate & Sky Theme
+  const chartColors = {
+      primary: "#38bdf8", // Sky Blue
+      text: "#94a3b8", // Slate 400
+      grid: "#1e293b", // Slate 800
+  };
+
   const moodChartData = {
     labels: weeklyData.map((entry) => format(new Date(entry.date), "EEE")),
     datasets: [
       {
         label: "Mood Level",
         data: weeklyData.map((entry) => getMoodIndex(entry.mood)),
-        borderColor: "#34C0FC",
-        backgroundColor: "rgba(52, 192, 252, 0.3)",
+        borderColor: chartColors.primary,
+        backgroundColor: "rgba(56, 189, 248, 0.2)",
         fill: true,
+        tension: 0.4,
+        pointBackgroundColor: chartColors.primary,
       },
     ],
   };
 
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+        legend: { display: false },
+    },
+    scales: {
+        y: {
+            beginAtZero: true,
+            max: 5,
+            ticks: {
+                 callback: function(value: string | number) {
+                    if(value === 1) return 'Sad';
+                    if(value === 2) return 'Neutral';
+                    if(value === 3) return 'Energetic';
+                    if(value === 4) return 'Happy';
+                    return '';
+                 },
+                 color: chartColors.text
+            },
+            grid: { color: chartColors.grid }
+        },
+        x: {
+            grid: { color: chartColors.grid },
+            ticks: { color: chartColors.text }
+        }
+    }
+  };
+
   return (
-    <div className="p-6">
-      {/* Mood Selection */}
-      <h3 className="text-lg font-semibold mb-3">How are you feeling today?</h3>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        {moodOptions.map((mood) => (
-          <button
-            key={mood.name}
-            className={`flex flex-col items-center justify-center p-4 border-2 rounded-lg transition-transform transform hover:scale-105 shadow-sm ${
-              mood.color
-            } ${selectedMood === mood.name ? "ring-4 ring-blue-400" : ""}`}
-            onClick={() => logMood(mood.name)}
-          >
-            <span className="text-3xl">{mood.icon}</span>
-            <span className="text-sm mt-2 font-medium">{mood.name}</span>
-          </button>
-        ))}
+    <div className="space-y-8 animate-in fade-in duration-500">
+       <div className="flex flex-col gap-2">
+            <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
+                <BookOpen className="text-primary"/> Mood Diary
+            </h1>
+            <p className="text-muted-foreground">Track your emotional well-being over time.</p>
+       </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Input Section */}
+          <Card className="bg-card border-border">
+              <CardHeader>
+                  <CardTitle>How are you feeling?</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    {moodOptions.map((mood) => (
+                    <button
+                        key={mood.name}
+                        onClick={() => setSelectedMood(mood.name)}
+                        className={`flex flex-col items-center justify-center p-4 border rounded-xl transition-all duration-200 ${
+                        mood.color
+                        } ${selectedMood === mood.name ? `ring-2 ${mood.activeColor} scale-105` : "border-transparent bg-secondary/5 text-muted-foreground grayscale hover:grayscale-0"}`}
+                    >
+                        <div className="mb-2">{mood.icon}</div>
+                        <span className="text-sm font-medium">{mood.name}</span>
+                    </button>
+                    ))}
+                </div>
+
+                <div className="space-y-2">
+                    <label className="text-sm font-medium text-foreground">Today&apos;s Reflection</label>
+                    <Textarea
+                        value={note}
+                        onChange={(e) => setNote(e.target.value)}
+                        placeholder="What's on your mind?..."
+                        className="bg-background border-input min-h-[100px]"
+                    />
+                </div>
+
+                <Button
+                    className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
+                    onClick={() => logMood(null)}
+                >
+                    Save Entry
+                </Button>
+              </CardContent>
+          </Card>
+
+          {/* Chart Section */}
+          <Card className="bg-card border-border">
+              <CardHeader>
+                  <CardTitle>Mood Trend (Last 7 Days)</CardTitle>
+              </CardHeader>
+              <CardContent className="h-[300px]">
+                   <Line data={moodChartData} options={chartOptions} />
+              </CardContent>
+          </Card>
       </div>
 
-      {/* Notes Section */}
-      <h3 className="text-lg font-semibold mb-2">📖 Today&apos;s Reflection</h3>
-      <Textarea
-        value={note}
-        onChange={(e) => setNote(e.target.value)}
-        placeholder="Write about your day..."
-        className="w-full mb-3"
-      />
-      <Button
-        className="w-full bg-blue-600 text-white hover:bg-blue-700"
-        onClick={() => logMood(selectedMood || "Neutral")}
-      >
-        Save Mood & Note
-      </Button>
-
-      {/* Weekly Mood Tracker */}
-      <h3 className="text-lg font-semibold mt-6 mb-3">
-        📊 Your Mood This Week
-      </h3>
-      <div className="grid grid-cols-7 gap-2">
-        {weeklyData.map((entry, i) => {
-          const moodOption = moodOptions.find((m) => m.name === entry.mood);
-
-          return (
-            <div key={entry.date} className="text-center">
-              <div className="text-xs text-gray-500">
-                {format(subDays(new Date(), i), "EEE")}
-              </div>
-              <div
-                className={`w-10 h-10 flex items-center justify-center rounded-md text-lg ${
-                  moodOption?.color || "bg-gray-200"
-                }`}
-              >
-                {moodOption?.icon || "-"}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Mood Trend Chart */}
-      <h3 className="text-lg font-semibold mt-6 mb-3 text-center">
-        📈 Mood Trend
-      </h3>
-      <div className="w-full h-48">
-        <Line
-          data={moodChartData}
-          options={{ responsive: true, maintainAspectRatio: false }}
-        />
-      </div>
+       {/* Weekly Grid (Visual) */}
+       <Card className="bg-card border-border">
+           <CardContent className="p-6">
+               <h3 className="text-sm font-medium text-muted-foreground mb-4">Weekly Overview</h3>
+               <div className="grid grid-cols-7 gap-2">
+                    {weeklyData.map((entry, i) => {
+                        const moodOption = moodOptions.find((m) => m.name === entry.mood);
+                        return (
+                            <div key={i} className="text-center space-y-2">
+                                <div className="text-xs text-muted-foreground">{format(new Date(entry.date), "EEE")}</div>
+                                <div className={`aspect-square rounded-lg flex items-center justify-center text-xl transition-all ${moodOption ? moodOption.color.replace('hover:bg-', '') + ' bg-opacity-20 border' : 'bg-secondary/10 text-muted-foreground'}`}>
+                                    {moodOption?.icon || "-"}
+                                </div>
+                            </div>
+                        )
+                    })}
+               </div>
+           </CardContent>
+       </Card>
     </div>
   );
 }
