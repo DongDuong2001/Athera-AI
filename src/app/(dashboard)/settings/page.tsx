@@ -6,147 +6,148 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
-import { Camera, Lock, Trash2, Save } from "lucide-react";
+import { Camera, Lock, Trash2, Save, Moon, Shield, User } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { toast } from "sonner";
 
 export default function Settings() {
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(true);
   const [notifications, setNotifications] = useState(true);
   const [avatar, setAvatar] = useState("/default-avatar.png");
 
-  return (
-    <div
-      className={`p-6 ${
-        darkMode ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-900"
-      }`}
-    >
-      <h1 className="text-3xl font-bold text-center">User Settings</h1>
-      <p className="text-center text-gray-500">
-        Manage your account settings and preferences
-      </p>
+  const handleSave = () => {
+      toast.success("Settings saved successfully!");
+  }
 
-      <div className="max-w-3xl mx-auto mt-8 bg-white shadow-lg rounded-lg p-6">
+  return (
+    <div className="space-y-8 animate-in fade-in duration-500 max-w-4xl mx-auto pb-10">
+      <div className="text-center md:text-left">
+         <h1 className="text-3xl font-bold text-foreground">User Settings</h1>
+         <p className="text-muted-foreground mt-2">Manage your account preferences and security.</p>
+      </div>
+
+      <div className="space-y-6">
         {/* Profile Section */}
-        <section>
-          <h2 className="text-xl font-semibold">Profile</h2>
-          <Separator className="my-4" />
-          <div className="flex items-center gap-6">
-            <div className="relative w-20 h-20">
-              <Image
-                src={avatar}
-                alt="Avatar"
-                width={80}
-                height={80}
-                className="rounded-full object-cover border"
-              />
-              <label className="absolute bottom-0 right-0 bg-blue-600 text-white p-1 rounded-full cursor-pointer">
-                <Camera size={16} />
-                <input
-                  type="file"
-                  className="hidden"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      setAvatar(URL.createObjectURL(file));
-                    }
-                  }}
-                />
-              </label>
-            </div>
-            <div className="flex-1">
-              <label className="text-sm text-gray-500">Full Name</label>
-              <Input placeholder="Enter your name" className="mt-1" />
-              <label className="text-sm text-gray-500 mt-3 block">Email</label>
-              <Input
-                type="email"
-                placeholder="Enter your email"
-                className="mt-1"
-              />
-            </div>
-          </div>
-        </section>
+        <Card className="bg-card border-border">
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2"><User className="text-primary"/> Profile</CardTitle>
+                <CardDescription>Update your personal information.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+                 <div className="flex flex-col md:flex-row items-center gap-6">
+                    <div className="relative group">
+                        <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-primary/20 bg-muted">
+                            <Image 
+                                src={avatar} 
+                                alt="Avatar" 
+                                width={96} 
+                                height={96} 
+                                className="object-cover w-full h-full"
+                            />
+                        </div>
+                        <label className="absolute bottom-0 right-0 bg-primary text-primary-foreground p-2 rounded-full cursor-pointer hover:bg-primary/90 transition-colors shadow-lg">
+                            <Camera size={16} />
+                            <input 
+                                type="file" 
+                                className="hidden" 
+                                onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if(file) setAvatar(URL.createObjectURL(file));
+                                }}
+                            />
+                        </label>
+                    </div>
+                    <div className="flex-1 w-full space-y-4">
+                        <div className="grid gap-2">
+                            <label className="text-sm font-medium text-foreground">Full Name</label>
+                            <Input placeholder="Enter your name" className="bg-background border-input" />
+                        </div>
+                        <div className="grid gap-2">
+                            <label className="text-sm font-medium text-foreground">Email</label>
+                            <Input type="email" placeholder="Enter your email" className="bg-background border-input" />
+                        </div>
+                    </div>
+                 </div>
+            </CardContent>
+        </Card>
 
         {/* Security Settings */}
-        <section className="mt-8">
-          <h2 className="text-xl font-semibold">Security</h2>
-          <Separator className="my-4" />
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-md font-medium">Change Password</h3>
-              <p className="text-sm text-gray-500">
-                Update your account password
-              </p>
-            </div>
-            <Button variant="outline">
-              <Lock size={16} className="mr-2" /> Change
+        <Card className="bg-card border-border">
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2"><Shield className="text-secondary"/> Security</CardTitle>
+                <CardDescription>Protect your account.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h3 className="font-medium text-foreground">Change Password</h3>
+                        <p className="text-sm text-muted-foreground">Update your password regularly.</p>
+                    </div>
+                    <Button variant="outline" className="border-border hover:bg-secondary/10 hover:text-secondary hover:border-secondary/50">
+                        <Lock size={16} className="mr-2" /> Change
+                    </Button>
+                </div>
+                <Separator className="bg-border" />
+                <div className="flex items-center justify-between">
+                     <div>
+                        <h3 className="font-medium text-foreground">Two-Factor Authentication</h3>
+                        <p className="text-sm text-muted-foreground">Add an extra layer of security.</p>
+                    </div>
+                    <Switch />
+                </div>
+            </CardContent>
+        </Card>
+
+        {/* Preferences */}
+        <Card className="bg-card border-border">
+             <CardHeader>
+                <CardTitle className="flex items-center gap-2"><Moon className="text-accent"/> Preferences</CardTitle>
+                <CardDescription>Customize your experience.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+                <div className="flex items-center justify-between">
+                     <div>
+                        <h3 className="font-medium text-foreground">Dark Mode</h3>
+                        <p className="text-sm text-muted-foreground">Toggle application theme preference.</p>
+                    </div>
+                    <Switch checked={darkMode} onCheckedChange={setDarkMode} />
+                </div>
+                <Separator className="bg-border" />
+                <div className="flex items-center justify-between">
+                     <div>
+                        <h3 className="font-medium text-foreground">Notifications</h3>
+                        <p className="text-sm text-muted-foreground">Receive updates and alerts.</p>
+                    </div>
+                    <Switch checked={notifications} onCheckedChange={setNotifications} />
+                </div>
+            </CardContent>
+        </Card>
+
+        {/* Danger Zone */}
+        <Card className="bg-destructive/10 border-destructive/20">
+             <CardHeader>
+                <CardTitle className="text-destructive flex items-center gap-2"><Trash2 size={20}/> Danger Zone</CardTitle>
+                <CardDescription className="text-destructive/80">Irreversible actions.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                 <div className="flex items-center justify-between">
+                    <div>
+                        <h3 className="font-medium text-destructive">Delete Account</h3>
+                        <p className="text-sm text-destructive/70">Permanently remove your account and data.</p>
+                    </div>
+                    <Button variant="destructive">
+                        Delete
+                    </Button>
+                 </div>
+            </CardContent>
+        </Card>
+
+        <div className="flex justify-end">
+            <Button size="lg" onClick={handleSave} className="bg-primary text-primary-foreground hover:bg-primary/90">
+                <Save size={16} className="mr-2" /> Save Changes
             </Button>
-          </div>
-          <div className="flex items-center justify-between mt-4">
-            <div>
-              <h3 className="text-md font-medium">
-                Enable Two-Factor Authentication (2FA)
-              </h3>
-              <p className="text-sm text-gray-500">
-                Extra layer of security for your account
-              </p>
-            </div>
-            <Switch />
-          </div>
-        </section>
-
-        {/* Notifications */}
-        <section className="mt-8">
-          <h2 className="text-xl font-semibold">Notifications</h2>
-          <Separator className="my-4" />
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-md font-medium">Email Notifications</h3>
-              <p className="text-sm text-gray-500">Receive updates via email</p>
-            </div>
-            <Switch
-              checked={notifications}
-              onCheckedChange={setNotifications}
-            />
-          </div>
-        </section>
-
-        {/* Appearance */}
-        <section className="mt-8">
-          <h2 className="text-xl font-semibold">Appearance</h2>
-          <Separator className="my-4" />
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-md font-medium">Dark Mode</h3>
-              <p className="text-sm text-gray-500">
-                Enable dark mode for better visibility
-              </p>
-            </div>
-            <Switch checked={darkMode} onCheckedChange={setDarkMode} />
-          </div>
-        </section>
-
-        {/* Account Actions */}
-        <section className="mt-8">
-          <h2 className="text-xl font-semibold text-red-600">Danger Zone</h2>
-          <Separator className="my-4" />
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-md font-medium">Delete Account</h3>
-              <p className="text-sm text-gray-500">
-                Permanently remove your account
-              </p>
-            </div>
-            <Button variant="destructive">
-              <Trash2 size={16} className="mr-2" /> Delete
-            </Button>
-          </div>
-        </section>
-
-        {/* Save Button */}
-        <div className="mt-8 text-right">
-          <Button className="bg-blue-600 text-white">
-            <Save size={16} className="mr-2" /> Save Changes
-          </Button>
         </div>
+
       </div>
     </div>
   );
