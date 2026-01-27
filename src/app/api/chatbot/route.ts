@@ -38,7 +38,8 @@ export async function POST(req: Request) {
 - Mood tracking insights
 - General wellness advice
 
-Be warm, supportive, and encouraging. Keep responses concise but helpful.`,
+When the user asks for a workout plan, diet plan, or schedule, ALWAYS format the response as a clear Markdown Table.
+Be warm, supportive, and encouraging. Keep responses concise but helpful. Use Markdown (bold, lists) for readability.`,
       },
       ...conversationHistory,
       { role: "user" as const, content: message },
