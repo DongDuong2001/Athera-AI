@@ -8,6 +8,17 @@ import { Button } from "@/components/ui/button";
 import SignUpForm, { type SignUpFormValues } from "./sign-up-form";
 import VerifyOtpForm, { VerifyOtpFormValues } from "./verify-otp-form";
 
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+
+// ... imports remain the same
+
 export default function SignUp() {
   const router = useRouter();
   const [step, setStep] = useState<"signup" | "verify">("signup");
@@ -112,67 +123,49 @@ export default function SignUp() {
   };
 
   return (
-    <div className="relative min-h-screen flex bg-gradient-to-br from-[#F0F5FF] to-[#DDE7F9]">
-      {/* Left Section (Image) */}
-      <div
-        className="hidden md:block w-1/2 bg-cover bg-center"
-        style={{ backgroundImage: 'url("/hero/hero-background-1.jpg")' }}
-      ></div>
-
-      {/* Right Section (Form) */}
-      <div className="w-full md:w-1/2 flex flex-col justify-center items-center px-6 py-12">
-        <div className="bg-white p-10 rounded-lg shadow-lg w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+      <Card className="w-full max-w-md shadow-lg">
+        <CardHeader className="space-y-1 text-center">
+          <CardTitle className="text-2xl font-bold">
+            {step === "signup" ? "Create Your Account" : "Verify Your Email"}
+          </CardTitle>
+          <CardDescription>
+            {step === "signup"
+              ? "Enter your details beneath to create an account"
+              : (
+                <span>
+                  We&apos;ve sent a 6-digit verification code to{" "}
+                  <span className="font-semibold text-gray-900">{email}</span>
+                </span>
+              )}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
           {step === "signup" ? (
-            <>
-              <h1 className="text-4xl font-extrabold text-gray-900 mb-6 text-center">
-                Create Your Account
-              </h1>
-
-              {/* Sign-up Form */}
-              <SignUpForm onSubmit={onSubmit} />
-
-              <div className="mt-6 text-center">
-                <p className="text-sm text-gray-600">
-                  Already have an account?{" "}
-                  <Link
-                    href="/sign-in"
-                    className="text-[#34C0FC] font-semibold"
-                  >
-                    Sign In
-                  </Link>
-                </p>
-              </div>
-            </>
+            <SignUpForm onSubmit={onSubmit} />
           ) : (
-            <>
-              <div className="space-y-6 mb-6">
-                <div className="text-center">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                    Verify Your Email
-                  </h2>
-                  <p className="text-gray-600">
-                    We&apos;ve sent a 6-digit verification code to{" "}
-                    <span className="font-semibold">{email}</span>
-                  </p>
-                </div>
-              </div>
-
-              {/* OTP Verification Form */}
-              <VerifyOtpForm onSuccess={verifyOtp} onResendOtp={resendOtp} />
-
-              <div className="mt-6 text-center">
-                <Button
-                  variant="ghost"
-                  onClick={() => setStep("signup")}
-                  className="text-sm text-gray-600 hover:text-gray-800"
-                >
-                  ← Back to sign up
-                </Button>
-              </div>
-            </>
+            <VerifyOtpForm onSuccess={verifyOtp} onResendOtp={resendOtp} />
           )}
-        </div>
-      </div>
+        </CardContent>
+        <CardFooter className="flex justify-center">
+          {step === "signup" ? (
+            <p className="text-sm text-gray-600">
+              Already have an account?{" "}
+              <Link href="/sign-in" className="text-[#34C0FC] font-semibold hover:underline">
+                Sign In
+              </Link>
+            </p>
+          ) : (
+            <Button
+              variant="ghost"
+              onClick={() => setStep("signup")}
+              className="text-sm text-gray-600 hover:text-gray-900"
+            >
+              ← Back to sign up
+            </Button>
+          )}
+        </CardFooter>
+      </Card>
     </div>
   );
 }
