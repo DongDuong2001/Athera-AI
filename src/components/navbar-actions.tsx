@@ -1,14 +1,11 @@
 import { Button } from "./ui/button";
 import Link from "next/link";
-import { createClient } from "@/utils/supabase/server";
+import { getSession } from "@/utils/auth";
 import NotificationPopover from "./notification-popover";
 import UserNav from "./user-nav";
 
 export default async function NavbarActions() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSession();
 
   return (
     <>
