@@ -46,7 +46,8 @@ export default function Chatbot() {
       playBotReplySound();
 
       setMessages((prev) => [...prev, { role: "bot", content: data.reply }]);
-    } catch (error) {
+    } catch (err) {
+      console.error("Chatbot error:", err);
       setMessages((prev) => [...prev, { role: "bot", content: "Something went wrong. Try again!" }]);
     } finally {
       setLoading(false);
