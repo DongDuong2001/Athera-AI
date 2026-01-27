@@ -28,6 +28,17 @@ const formSchema = z.object({
   }),
 });
 
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+
+// ... imports remain the same until Form imports
+
 function SignInContent() {
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
@@ -73,38 +84,27 @@ function SignInContent() {
   };
 
   return (
-    <div className="relative min-h-screen flex bg-gradient-to-br from-[#F0F5FF] to-[#DDE7F9]">
-      {/* Left Section (Image) */}
-      <div
-        className="hidden md:block w-1/2 bg-cover bg-center"
-        style={{ backgroundImage: 'url("/hero/hero-background.jpg")' }}
-      ></div>
-
-      {/* Right Section (Form) */}
-      <div className="w-full md:w-1/2 flex flex-col justify-center items-center px-6 py-12">
-        <div className="bg-white p-10 rounded-lg shadow-lg w-full max-w-md">
-          <h1 className="text-4xl font-extrabold text-gray-900 mb-6 text-center">
-            Welcome Back
-          </h1>
-          <p className="text-gray-600 text-center mb-8">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+      <Card className="w-full max-w-md shadow-lg">
+        <CardHeader className="space-y-1 text-center">
+          <CardTitle className="text-2xl font-bold">Welcome Back</CardTitle>
+          <CardDescription>
             Sign in to continue to your personalized dashboard.
-          </p>
-
-          {/* Sign-in Form */}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-gray-700 font-medium">
-                      Email Address
-                    </FormLabel>
+                    <FormLabel>Email Address</FormLabel>
                     <FormControl>
                       <Input
                         placeholder="youremail@domain.com"
-                        className="px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#34C0FC] placeholder:text-gray-500"
+                        className="placeholder:text-gray-400"
                         {...field}
                       />
                     </FormControl>
@@ -118,28 +118,27 @@ function SignInContent() {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-gray-700 font-medium">
-                      Password
-                    </FormLabel>
+                    <FormLabel>Password</FormLabel>
                     <div className="relative">
                       <FormControl>
                         <Input
                           type={showPassword ? "text" : "password"}
                           placeholder="********"
-                          className="px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#34C0FC] placeholder:text-gray-500"
+                          className="placeholder:text-gray-400"
                           {...field}
                         />
                       </FormControl>
                       <Button
                         type="button"
                         variant="ghost"
-                        className="absolute right-0 top-0 h-full px-3"
+                        size="icon"
+                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                         onClick={() => setShowPassword(!showPassword)}
                       >
                         {showPassword ? (
-                          <Eye className="w-4 h-4" />
+                          <Eye className="w-4 h-4 text-gray-500" />
                         ) : (
-                          <EyeOff className="w-4 h-4" />
+                          <EyeOff className="w-4 h-4 text-gray-500" />
                         )}
                       </Button>
                     </div>
@@ -150,7 +149,7 @@ function SignInContent() {
 
               <Button
                 type="submit"
-                className="w-full bg-[#34C0FC] text-white py-3 rounded-md shadow-md hover:bg-[#1D92D0] transition"
+                className="w-full bg-[#34C0FC] hover:bg-[#1D92D0]"
                 disabled={form.formState.isSubmitting}
               >
                 {form.formState.isSubmitting ? (
@@ -164,24 +163,23 @@ function SignInContent() {
               </Button>
             </form>
           </Form>
-
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
-              Do not have an account?{" "}
-              <Link href="/sign-up" className="text-[#34C0FC] font-semibold">
-                Sign Up
-              </Link>
-            </p>
-          </div>
-        </div>
-      </div>
+        </CardContent>
+        <CardFooter className="flex justify-center">
+          <p className="text-sm text-gray-600">
+            Do not have an account?{" "}
+            <Link href="/sign-up" className="text-[#34C0FC] font-semibold hover:underline">
+              Sign Up
+            </Link>
+          </p>
+        </CardFooter>
+      </Card>
     </div>
   );
 }
 
 export default function SignIn() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-[#34C0FC]" /></div>}>
       <SignInContent />
     </Suspense>
   );
