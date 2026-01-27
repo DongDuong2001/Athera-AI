@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Line, Bar } from "react-chartjs-2";
 import {
@@ -8,8 +7,8 @@ import {
   HeartPulse,
   Timer,
   BrainCircuit,
-  TrendingUp,
   Sparkles,
+  Zap,
 } from "lucide-react";
 import {
   Chart as ChartJS,
@@ -40,98 +39,107 @@ const weeklyMeditationData = [20, 30, 45, 50, 65, 75, 90]; // Minutes per day
 const weeklyWorkoutData = [10, 15, 20, 30, 35, 40, 50]; // Minutes per day
 
 export default function AnalyticsPage() {
-  const [aiInsights, setAiInsights] = useState(
-    "Loading AI-generated insights..."
-  );
+  // Chart Colors matching Slate & Sky Theme
+  const chartColors = {
+      primary: "#38bdf8", // Sky Blue
+      secondary: "#818cf8", // Indigo
+      text: "#94a3b8", // Slate 400
+      grid: "#1e293b", // Slate 800
+  };
 
-  useEffect(() => {
-    // Simulate AI-powered insights (Replace with API Call)
-    setTimeout(() => {
-      setAiInsights(
-        "You are on track! Increase HIIT workouts by 10% for better results."
-      );
-    }, 1500);
-  }, []);
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+        legend: { labels: { color: chartColors.text } },
+    },
+    scales: {
+        x: { 
+            grid: { color: chartColors.grid },
+            ticks: { color: chartColors.text }
+        },
+        y: { 
+            grid: { color: chartColors.grid },
+            ticks: { color: chartColors.text }
+        }
+    }
+  };
 
   return (
-    <>
+    <div className="space-y-8 animate-in fade-in duration-500">
       {/* Hero Section */}
-      <section className="pt-28 pb-10 text-center">
-        <h1 className="text-5xl font-extrabold text-gray-900 drop-shadow-md">
-          Your <span className="text-[#34C0FC]">Personal Analytics</span>{" "}
-          Dashboard
+      <section className="pt-8 pb-4">
+        <h1 className="text-4xl font-extrabold tracking-tight text-foreground">
+          Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-sky-400">Personal Analytics</span>
         </h1>
-        <p className="text-lg text-gray-600 mt-4 max-w-3xl mx-auto">
-          Track your meditation, workout, and overall wellness progress in real
-          time.
+        <p className="text-lg text-muted-foreground mt-2 max-w-3xl">
+          Track your wellness journey with real-time insights.
         </p>
       </section>
 
       {/* AI Insights Section */}
-      <div className="max-w-5xl mx-auto mb-8 p-6 bg-white/90 shadow-xl rounded-xl border border-gray-200 flex items-center gap-4">
-        <Sparkles className="text-yellow-500 w-10 h-10" />
-        <p className="text-gray-700 font-medium">{aiInsights}</p>
+      <div className="p-6 bg-gradient-to-r from-primary/10 to-transparent border-l-4 border-primary rounded-r-xl flex items-start gap-4 shadow-sm">
+        <Sparkles className="text-primary w-6 h-6 mt-1 flex-shrink-0" />
+        <div>
+            <h3 className="font-semibold text-foreground">AI Insight</h3>
+            <p className="text-muted-foreground mt-1">
+                You are on track! Consistent meditation has improved your focus score by <span className="text-primary font-bold">15%</span> this week. Try adding a 5-minute HIIT session to boost your energy levels.
+            </p>
+        </div>
       </div>
 
       {/* Analytics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mx-auto max-w-6xl">
-        <Card className="p-4 shadow-lg bg-white border border-gray-200 hover:scale-105 transition">
-          <CardHeader className="flex justify-between items-center">
-            <CardTitle className="text-gray-900 flex items-center gap-2">
-              <HeartPulse className="text-red-500" /> Heart Rate
-            </CardTitle>
-            <span className="text-green-500 font-bold text-lg">78 bpm</span>
-          </CardHeader>
-          <CardContent className="text-gray-600">
-            Resting heart rate is stable.
-          </CardContent>
-        </Card>
-
-        <Card className="p-4 shadow-lg bg-white border border-gray-200 hover:scale-105 transition">
-          <CardHeader className="flex justify-between items-center">
-            <CardTitle className="text-gray-900 flex items-center gap-2">
-              <BrainCircuit className="text-blue-500" /> Mental Focus
-            </CardTitle>
-            <span className="text-purple-500 font-bold text-lg">High</span>
-          </CardHeader>
-          <CardContent className="text-gray-600">
-            Consistent meditation is improving focus.
-          </CardContent>
-        </Card>
-
-        <Card className="p-4 shadow-lg bg-white border border-gray-200 hover:scale-105 transition">
-          <CardHeader className="flex justify-between items-center">
-            <CardTitle className="text-gray-900 flex items-center gap-2">
-              <TrendingUp className="text-green-500" /> Activity Level
-            </CardTitle>
-            <span className="text-blue-500 font-bold text-lg">85%</span>
-          </CardHeader>
-          <CardContent className="text-gray-600">
-            You are reaching your weekly fitness goal.
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <StatsCard 
+            icon={<HeartPulse className="text-rose-500" />}
+            title="Heart Rate"
+            value="72 bpm"
+            desc="Resting rate is optimal."
+            trend="Stable"
+            trendColor="text-emerald-500"
+        />
+        <StatsCard 
+            icon={<BrainCircuit className="text-primary" />}
+            title="Focus Score"
+            value="8.5/10"
+            desc="Peak mental clarity detected."
+            trend="+12%"
+            trendColor="text-primary"
+        />
+        <StatsCard 
+            icon={<Zap className="text-amber-500" />}
+            title="Energy Level"
+            value="High"
+            desc="Ready for intense activity."
+            trend="Peak"
+            trendColor="text-amber-500"
+        />
       </div>
 
       {/* Charts */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mx-auto max-w-6xl mt-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Meditation Trend */}
-        <Card className="p-4 shadow-lg bg-white border border-gray-200">
+        <Card className="bg-card border-border shadow-lg">
           <CardHeader>
-            <CardTitle className="text-gray-900 flex items-center gap-2">
-              <Timer className="text-[#34C0FC]" /> Weekly Meditation Time
+            <CardTitle className="text-foreground flex items-center gap-2">
+              <Timer className="text-primary" size={20} /> Weekly Meditation
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="h-64">
             <Line
+              options={chartOptions}
               data={{
                 labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
                 datasets: [
                   {
-                    label: "Meditation (min)",
+                    label: "Minutes",
                     data: weeklyMeditationData,
-                    borderColor: "#34C0FC",
-                    backgroundColor: "rgba(52, 192, 252, 0.2)",
+                    borderColor: chartColors.primary,
+                    backgroundColor: "rgba(56, 189, 248, 0.1)",
                     borderWidth: 3,
+                    tension: 0.4,
+                    fill: true,
+                    pointBackgroundColor: chartColors.primary,
                   },
                 ],
               }}
@@ -140,23 +148,25 @@ export default function AnalyticsPage() {
         </Card>
 
         {/* Workout Progress */}
-        <Card className="p-4 shadow-lg bg-white border border-gray-200">
+        <Card className="bg-card border-border shadow-lg">
           <CardHeader>
-            <CardTitle className="text-gray-900 flex items-center gap-2">
-              <Activity className="text-green-500" /> Workout Progress
+            <CardTitle className="text-foreground flex items-center gap-2">
+              <Activity className="text-emerald-500" size={20} /> Workout Intensity
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="h-64">
             <Bar
+               options={chartOptions}
               data={{
                 labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
                 datasets: [
                   {
-                    label: "Workout (min)",
-                    data: weeklyWorkoutData,
-                    backgroundColor: "rgba(34, 197, 94, 0.5)",
-                    borderColor: "#22C55E",
-                    borderWidth: 2,
+                    label: "Calories Burned",
+                    data: weeklyWorkoutData.map(min => min * 8), // Mock calc
+                    backgroundColor: "rgba(16, 185, 129, 0.6)", // Emerald
+                    borderColor: "#10b981",
+                    borderWidth: 1,
+                    borderRadius: 4,
                   },
                 ],
               }}
@@ -164,6 +174,32 @@ export default function AnalyticsPage() {
           </CardContent>
         </Card>
       </div>
-    </>
+    </div>
   );
+}
+
+interface StatsCardProps {
+    icon: React.ReactNode;
+    title: string;
+    value: string;
+    desc: string;
+    trend?: string;
+    trendColor?: string;
+}
+
+function StatsCard({ icon, title, value, desc, trend, trendColor }: StatsCardProps) {
+    return (
+        <Card className="bg-card border-border shadow-sm hover:border-primary/30 transition-colors">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+               {icon} {title}
+            </CardTitle>
+            {trend && <span className={`text-xs font-bold ${trendColor}`}>{trend}</span>}
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-foreground">{value}</div>
+            <p className="text-xs text-muted-foreground mt-1">{desc}</p>
+          </CardContent>
+        </Card>
+    )
 }
