@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dumbbell, CheckCircle, Flame, Timer, Sparkles } from "lucide-react";
-import { OpenAI } from "openai";
+import { toast } from "sonner";
 
 interface Workout {
   title: string;
@@ -54,28 +54,44 @@ export default function WorkoutPlan() {
   const fetchAiWorkout = async () => {
     setLoading(true);
     try {
-      const openai = new OpenAI({
-        apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
-      });
-      const response = await openai.chat.completions.create({
-        model: "gpt-4",
-        messages: [
-          {
-            role: "user",
-            content: `Suggest a ${selectedLevel.toLowerCase()} level workout plan.`,
-          },
-        ],
-        temperature: 0.7,
+      const response = await fetch("/api/chatbot", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: `Suggest a ${selectedLevel.toLowerCase()} level workout plan. Respond ONLY with valid JSON in this exact format: {"title": "Workout Name", "level": "${selectedLevel === "All" ? "Intermediate" : selectedLevel}", "duration": "X min", "calories": "Y kcal"}`,
+        }),
       });
 
-      const workoutData = response.choices[0].message.content;
-      if (workoutData) {
-        setAiWorkout(JSON.parse(workoutData)); // Ensure AI returns a valid JSON response
-      } else {
-        setAiWorkout(null);
+      const data = await response.json();
+
+      if (data.reply) {
+        try {
+          // Try to extract JSON from the response
+          const jsonMatch = data.reply.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            const workoutData = JSON.parse(jsonMatch[0]);
+            setAiWorkout(workoutData);
+          } else {
+            // If no valid JSON, create a default workout based on the response
+            setAiWorkout({
+              title: "AI Custom Workout",
+              level: selectedLevel === "All" ? "Intermediate" : selectedLevel,
+              duration: "30 min",
+              calories: "300 kcal",
+            });
+          }
+        } catch {
+          setAiWorkout({
+            title: "Full Body Burn",
+            level: selectedLevel === "All" ? "Intermediate" : selectedLevel,
+            duration: "30 min",
+            calories: "350 kcal",
+          });
+        }
       }
     } catch (error) {
       console.error("Error fetching AI workout:", error);
+      toast.error("Failed to get AI recommendation");
       setAiWorkout(null);
     }
     setLoading(false);
@@ -118,9 +134,11 @@ export default function WorkoutPlan() {
         {/* AI Workout Button */}
         <Button
           onClick={fetchAiWorkout}
+          disabled={loading}
           className="mt-4 bg-[#34C0FC] text-white px-6 py-2 rounded-lg shadow-lg flex items-center gap-2 hover:bg-[#07304A] transition"
         >
-          <Sparkles className="w-5 h-5" /> Get AI Workout Plan
+          <Sparkles className="w-5 h-5" />
+          {loading ? "Getting AI Workout..." : "Get AI Workout Plan"}
         </Button>
       </section>
 
