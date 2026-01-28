@@ -16,13 +16,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Athera AI",
+  title: "Athera Wellness",
   description:
     "Improve your mental well-being through personalized wellness experiences powered by AI.",
   icons: {
-    icon: "/logo/Athera AI.png",
-    shortcut: "/logo/Athera AI.png",
-    apple: "/logo/Athera AI.png",
+    icon: "/logo/logo-new.png",
+    shortcut: "/logo/logo-new.png",
+    apple: "/logo/logo-new.png",
   },
 };
 
