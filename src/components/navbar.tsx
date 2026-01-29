@@ -55,10 +55,10 @@ export default async function Navbar() {
               Diary
             </Link>
              <Link
-              href="/services"
+              href="/about"
               className="text-muted-foreground hover:text-primary transition-colors duration-200 font-medium text-sm tracking-wide"
             >
-              Services
+              About
             </Link>
             <div className="pl-4 border-l border-border/50">
                 <NavbarActions />
