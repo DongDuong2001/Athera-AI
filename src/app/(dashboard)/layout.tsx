@@ -8,6 +8,7 @@ import {
   Headphones,
   Home,
   Menu,
+  Notebook,
 } from "lucide-react";
 import { useState } from "react";
 import Link from "next/link";
@@ -27,6 +28,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const navItems = [
     { href: "/", label: "Home", icon: Home },
     { href: "/guidedmeditation", label: "Meditation", icon: Headphones },
+    { href: "/mood-diary", label: "Diary", icon: Notebook },
     { href: "/analytics", label: "Analytics", icon: BarChart2 },
     { href: "/workout", label: "Workout Plan", icon: Flame },
     { href: "/chatbot", label: "AI Companion", icon: BotMessageSquareIcon },
